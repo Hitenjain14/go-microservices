@@ -1,0 +1,8 @@
+.vscode
+project/db-data
+mail-service/mailApp
+mail-service/mailerApp
+logger-service/loggerServiceApp
+broker-service/brokerApp
+authentication-service/authApp
+.DS_Store
