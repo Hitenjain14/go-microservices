@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"log"
 	"log-service/data"
+	"net"
 	"net/http"
+	"net/rpc"
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -51,9 +53,18 @@ func main() {
 	app := &Config{
 		Models: data.New(mongoClient),
 	}
+	//Register rpc server
+	err = rpc.Register(new(RPCServer))
+	if err != nil {
+		log.Println("Error registering rpc server", err)
+	}
+	go app.rpcListen()
+
+	//grpc server
+	go app.gRPCListen()
 
 	//start web server
-	// app.serve()
+	log.Println("Starting web server on port: ", webPort)
 	srv := &http.Server{
 		Addr:    fmt.Sprintf(":%s", webPort),
 		Handler: app.routes(),
@@ -66,18 +77,24 @@ func main() {
 
 }
 
-// func (app *Config) serve() {
-// 	srv := &http.Server{
-// 		Addr:    fmt.Sprintf(":%s", webPort),
-// 		Handler: app.routes(),
-// 	}
-// 	log.Println("Starting Server on port", webPort)
-// 	err := srv.ListenAndServe()
-// 	if err != nil {
-// 		log.Panic(err)
-// 	}
+func (app *Config) rpcListen() error {
+	log.Println("Starting RPC server on port: ", rpcPort)
+	listen, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%s", rpcPort))
 
-// }
+	if err != nil {
+		return err
+	}
+
+	defer listen.Close()
+
+	for {
+		rpcCon, err := listen.Accept()
+		if err != nil {
+			continue
+		}
+		go rpc.ServeConn(rpcCon)
+	}
+}
 
 func connectToMongo() (*mongo.Client, error) {
 	//create connection options

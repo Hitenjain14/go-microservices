@@ -5,4 +5,6 @@ mail-service/mailerApp
 logger-service/loggerServiceApp
 broker-service/brokerApp
 authentication-service/authApp
+front-end/frontApp
+listener-service/listenerApp
 .DS_Store

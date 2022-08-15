@@ -23,19 +23,18 @@ func (app *Config) Authenticate(w http.ResponseWriter, r *http.Request) {
 	// validate the user against the database
 	user, err := app.Models.User.GetByEmail(requestPayload.Email)
 	if err != nil {
-		app.errorJSON(w, errors.New("invalid credentials"), http.StatusUnauthorized)
+		app.errorJSON(w, errors.New("invalid credentials"), http.StatusBadRequest)
 		return
 	}
 
 	valid, err := user.PasswordMatches(requestPayload.Password)
 	if err != nil || !valid {
-		app.errorJSON(w, errors.New("invalid credentials"), http.StatusUnauthorized)
+		app.errorJSON(w, errors.New("invalid credentials"), http.StatusBadRequest)
 		return
 	}
 
-	//log authentication
+	// log authentication
 	err = app.logRequest("authentication", fmt.Sprintf("%s logged in", user.Email))
-
 	if err != nil {
 		app.errorJSON(w, err)
 		return
@@ -59,16 +58,10 @@ func (app *Config) logRequest(name, data string) error {
 	entry.Name = name
 	entry.Data = data
 
-	jsonData, err := json.MarshalIndent(entry, "", "\t")
-
-	if err != nil {
-		return err
-	}
-
+	jsonData, _ := json.MarshalIndent(entry, "", "\t")
 	logServiceURL := "http://logger-service/log"
 
 	request, err := http.NewRequest("POST", logServiceURL, bytes.NewBuffer(jsonData))
-
 	if err != nil {
 		return err
 	}
@@ -78,6 +71,6 @@ func (app *Config) logRequest(name, data string) error {
 	if err != nil {
 		return err
 	}
-	return nil
 
+	return nil
 }
