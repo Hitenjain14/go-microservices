@@ -7,4 +7,5 @@ broker-service/brokerApp
 authentication-service/authApp
 front-end/frontApp
 listener-service/listenerApp
+front-end/frontEndApp
 .DS_Store
